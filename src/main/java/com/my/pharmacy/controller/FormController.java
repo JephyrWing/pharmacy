@@ -2,6 +2,7 @@ package com.my.pharmacy.controller;
 
 import com.my.pharmacy.dto.DocumentDto;
 import com.my.pharmacy.dto.KakaoApiResponseDto;
+import com.my.pharmacy.dto.OutputDto;
 import com.my.pharmacy.service.KakaoAddressSearchService;
 import com.my.pharmacy.service.KakaoCategorySearchService;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -39,8 +42,8 @@ public class FormController {
                 .getDocumentList().get(0);
         KakaoApiResponseDto kakaoApiCategoryDto = kakaoCategorySearchService.resultCategorySearch(documentDto);
         log.info("카테고리 검색 결과 : " + kakaoApiCategoryDto);
-
-        model.addAttribute("dto", kakaoApiCategoryDto);
+        List<OutputDto> resultList = kakaoCategorySearchService.toOutputDtoList(kakaoApiCategoryDto.getDocumentList());
+        model.addAttribute("dtoList", resultList);
         return "output";
     }
 }

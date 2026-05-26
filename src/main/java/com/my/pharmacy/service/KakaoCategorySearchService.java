@@ -2,6 +2,7 @@ package com.my.pharmacy.service;
 
 import com.my.pharmacy.dto.DocumentDto;
 import com.my.pharmacy.dto.KakaoApiResponseDto;
+import com.my.pharmacy.dto.OutputDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +14,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,8 +26,8 @@ public class KakaoCategorySearchService {
     private String kakaoRestApiKey;
     private static final String KAKAO_CATEGORY_URL = "https://dapi.kakao.com/v2/local/search/category";
     //카테고리 상수(약국)
-    //private static final String CATEGORY = "PM9";
-    private static final String CATEGORY = "CE7";
+    private static final String CATEGORY = "PM9";
+    //private static final String CATEGORY = "CE7";
     public KakaoApiResponseDto resultCategorySearch(DocumentDto dto) {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(KAKAO_CATEGORY_URL);
         // 1. 카테고리
@@ -50,5 +53,39 @@ public class KakaoCategorySearchService {
                         httpEntity,
                         KakaoApiResponseDto.class
                 ).getBody();
+    }
+    // 각각의 DocumentDto를 꺼내서 OutputDto 변환
+    private OutputDto toOutputDto(DocumentDto document) {
+        // 길찾기 URL 변수
+        String DIRECTION_URL = "https://map.kakao.com/link/map/";
+        String ROADVIEW_URL = "https://map.kakao.com/link/roadview/";
+        String directionParams = String.join(",", document.getPlaceName(),
+                String.valueOf(document.getLatitude()),
+                String.valueOf(document.getLongitude()));
+        DIRECTION_URL = UriComponentsBuilder
+                .fromUriString(DIRECTION_URL + directionParams)
+                .toUriString();
+        String roadViewParams = String.join(",",
+                String.valueOf(document.getLatitude()),
+                String.valueOf(document.getLongitude()));
+        ROADVIEW_URL = ROADVIEW_URL + roadViewParams;
+
+        return OutputDto.builder()
+                .pharmacyName(document.getPlaceName())
+                .pharmacyAddress(document.getAddressName())
+                .pharmacyPhone(document.getPhone())
+                .distance(document.getDistance())
+                .directionURL(DIRECTION_URL)
+                .roadViewURL(ROADVIEW_URL)
+                .build();
+    }
+
+    // documentList를 받아서 OutputDto의 리스트로 변환
+    public List<OutputDto> toOutputDtoList(List<DocumentDto> documentList) {
+        return documentList
+                .stream()
+                .map(dto-> toOutputDto(dto))
+                .limit(5)
+                .toList();
     }
 }
