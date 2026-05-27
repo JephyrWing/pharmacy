@@ -42,7 +42,7 @@
         </form>
       </div>
       <div class="grid-image">
-        <img src="/images/map.png" alt="map" class="img-responsive img-rounded">
+        <div id="map" style="width:100%;height:350px;"></div>
         <img src="/images/road.png" alt="road" class="img-responsive img-rounded">
       </div>
     </div>
@@ -69,5 +69,54 @@
   })
 </script>
 <script src="//t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=7c5ea14218a90d603f0617ab1ab5927e"></script>
+<script>
+  // 위치 정보 지원 여부 확인
+  let mapContainer = document.getElementById('map'), // 지도를 표시할 div
+      mapOption = {
+        center: new kakao.maps.LatLng(37.2769375834208, 127.027515054417), // 지도의 중심좌표
+        level: 3 // 지도의 확대 레벨
+      };
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+          // 성공 시
+          const latitude = position.coords.latitude;   // 위도
+          const longitude = position.coords.longitude; // 경도
+          console.log(`위도: ${latitude}, 경도: ${longitude}`);
+          mapOption = {
+            center: new kakao.maps.LatLng(latitude, longitude), // 지도의 중심좌표
+            level: 3 // 지도의 확대 레벨
+          };
+          
+        },
+        (error) => {
+          // 실패 시 (권한 거부 등)
+          console.error("위치 정보를 가져올 수 없습니다: ", error.message);
+        },
+        {
+          enableHighAccuracy: true, // GPS를 우선하여 높은 정확도 요청
+          timeout: 5000,            // 타임아웃 제한 (밀리초 단위)
+          maximumAge: 0             // 캐시된 위치 대신 새로운 위치를 갱신하여 가져옴
+        }
+    );
+  } else {
+    console.error("이 브라우저는 Geolocation API를 지원하지 않습니다.");
+  }
+  
+  // 지도를 표시할 div와  지도 옵션으로  지도를 생성합니다
+  let map = new kakao.maps.Map(mapContainer, mapOption);
+  
+  // 마커가 표시될 위치입니다
+  let markerPosition  = new kakao.maps.LatLng(33.450701, 126.570667);
+  
+  // 마커를 생성합니다
+  let marker = new kakao.maps.Marker({
+    position: markerPosition
+  });
+  
+  // 마커가 지도 위에 표시되도록 설정합니다
+  marker.setMap(map);
+</script>
 </body>
 </html>
